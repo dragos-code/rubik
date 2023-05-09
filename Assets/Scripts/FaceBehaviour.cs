@@ -2,21 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//[ExecuteInEditMode]
 public class FaceBehaviour : MonoBehaviour
 {
-    [SerializeField] Color color = Color.white;
     Renderer _renderer_material;
+    public ColorContainer _container;
+    [SerializeField]
+    [Range(0, 5)] int indexNumber;
 
     private void Start()
     {
         _renderer_material = GetComponent<Renderer>();
-        _renderer_material.material.color = color;
-    }
-
-    private void Update()
-    {
-       // _renderer_material.material.color = color;
-
+        _renderer_material.material.color = _container._color[indexNumber];
     }
 }
