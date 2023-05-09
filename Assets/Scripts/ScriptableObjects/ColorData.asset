@@ -12,4 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb12c1dc68fb70549b81e99f84684e58, type: 3}
   m_Name: ColorData
   m_EditorClassIdentifier: 
-  _color: []
+  _color:
+  - {r: 1, g: 1, b: 1, a: 0}
+  - {r: 1, g: 0.9220363, b: 0, a: 0}
+  - {r: 1, g: 0, b: 0, a: 0}
+  - {r: 1, g: 0.5214751, b: 0, a: 0}
+  - {r: 0, g: 0.9063735, b: 1, a: 0}
+  - {r: 0.2660625, g: 1, b: 0, a: 0}
