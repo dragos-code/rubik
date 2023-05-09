@@ -12,8 +12,6 @@ public class FaceBehaviour : MonoBehaviour
     {
         _renderer_material = GetComponent<Renderer>();
         _renderer_material.material.color = color;
-
-
     }
 
     private void Update()
