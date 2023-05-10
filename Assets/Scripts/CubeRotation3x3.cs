@@ -1,7 +1,6 @@
-// A longer example of Vector3.Lerp usage.
-// Drop this script under an object in your scene, and specify 2 other objects in the "startMarker"/"target" variables in the script inspector window.
-// At play time, the script will move the object along a path between the position of those two markers.
-
+//// A longer example of Vector3.Lerp usage.
+//// Drop this script under an object in your scene, and specify 2 other objects in the "startMarker"/"target" variables in the script inspector window.
+//// At play time, the script will move the object along a path between the position of those two markers.
 using UnityEngine;
 using System.Collections;
 using UnityEditor.Experimental.GraphView;
@@ -16,13 +15,6 @@ public class CubeRotation3x3 : MonoBehaviour
 
     [SerializeField] Camera mainCamera;
 
-    public enum Directions
-    {
-        Up,
-        Down, 
-        Left, 
-        Right
-    }
     void Update()
     {
 
