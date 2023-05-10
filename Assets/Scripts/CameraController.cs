@@ -10,6 +10,13 @@ public class CameraController : MonoBehaviour
     public Transform target;
     public Transform centerCube;
     private float timeToMove = 1f;
+    GameObject up, down, left, right;
+
+    private void Start()
+    { 
+       
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
