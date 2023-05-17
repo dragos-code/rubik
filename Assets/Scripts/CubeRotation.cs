@@ -30,7 +30,7 @@ public class CubeRotation : MonoBehaviour
 
     private void RotateCube(Vector3 axis)
     {
-        targetRotation = Quaternion.Euler(axis * 90f) * transform.rotation;
+        targetRotation = Quaternion.Euler(axis * 90f) * transform.rotation;  // gargantuan kraken eldrich solution
         isRotating = true;
     }
 
