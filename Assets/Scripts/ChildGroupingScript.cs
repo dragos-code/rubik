@@ -1,23 +1,37 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ChildGroupingScript : MonoBehaviour
 {
     public GameObject parentObject;
     public string stringToContain;
 
-    private Transform defaultParent;
-    private GameObject groupObject;
+    private Transform groupObject;
+
+    // Dictionary to store the original parent of each child
+    private Dictionary<Transform, Transform> originalParents = new Dictionary<Transform, Transform>();
 
     private void Start()
     {
-        // Store the default parent and create a new group object
-        defaultParent = parentObject.transform.parent;
-        groupObject = new GameObject("GroupedChildren");
-        groupObject.transform.SetParent(defaultParent);
-        groupObject.transform.localPosition = Vector3.zero;
+        // Create a new groupObject as a child of the parentObject
+        groupObject = new GameObject("RotationPieces").transform;
+        groupObject.SetParent(parentObject.transform);
 
         // Group the matching children
-        GroupMatchingChildren();
+        //GroupMatchingChildren();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            GroupMatchingChildren();
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            UngroupMatchingChildren();
+        }
     }
 
     private void GroupMatchingChildren()
@@ -30,21 +44,36 @@ public class ChildGroupingScript : MonoBehaviour
 
             if (child.name.Contains(stringToContain))
             {
-                child.SetParent(groupObject.transform);
+                if (!originalParents.ContainsKey(child))
+                {
+                    // Store the original parent of the child
+                    originalParents[child] = child.parent;
+                }
+
+                child.SetParent(groupObject);
             }
         }
     }
 
-    public void RevertToDefault()
+    private void UngroupMatchingChildren()
     {
-        int childCount = groupObject.transform.childCount;
-
+        // Iterate through the grouped children in the groupObject
+        int childCount = groupObject.childCount;
         for (int i = childCount - 1; i >= 0; i--)
         {
-            Transform child = groupObject.transform.GetChild(i);
-            child.SetParent(parentObject.transform);
-        }
+            Transform child = groupObject.GetChild(i);
 
-        Destroy(groupObject);
+            // Check if the child was originally grouped
+            if (originalParents.ContainsKey(child))
+            {
+                // Restore the original parent of the child
+                Transform originalParent = originalParents[child];
+                child.SetParent(originalParent);
+
+                // Remove the child from the originalParents dictionary
+                originalParents.Remove(child);
+            }
+        }
     }
+
 }
