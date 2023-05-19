@@ -18,11 +18,11 @@ public class RaycastManager : MonoBehaviour
             if (Physics.Raycast(gameObjects[i].transform.position, directions[i], out hit))
             {
                 string faceName = hit.collider.transform.name;
-                Debug.Log("Hit parent name: " + faceName);
+                //Debug.Log("Hit parent name: " + faceName);
             }
             else
             {
-                Debug.Log("no");
+                //Debug.Log("no");
             }
         }
     }

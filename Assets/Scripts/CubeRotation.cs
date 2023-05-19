@@ -5,6 +5,13 @@ public class CubeRotation : MonoBehaviour
     private Quaternion targetRotation;
     private bool isRotating = false;
 
+    private CommandManager commandManager;
+
+    private void Start()
+    {
+        commandManager = FindObjectOfType<CommandManager>();
+    }
+
     private void Update()
     {
         if (!isRotating)
@@ -24,6 +31,18 @@ public class CubeRotation : MonoBehaviour
             else if (Input.GetKeyDown(KeyCode.RightArrow))
             {
                 RotateCube(Vector3.down);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                Quaternion newRotation = transform.rotation * Quaternion.Euler(0f, 45f, 0f);
+                ICommand rotateCommand = new RotateCommand(transform, newRotation);
+                commandManager.ExecuteCommand(rotateCommand);
+            }
+
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                commandManager.UndoLastCommand();
             }
         }
     }
