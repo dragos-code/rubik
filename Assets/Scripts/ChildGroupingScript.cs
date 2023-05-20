@@ -5,9 +5,9 @@ public class ChildGroupingScript : MonoBehaviour
 {
     public GameObject parentObject;
     public string stringToContain;
-
     private Transform groupObject;
 
+    public Transform GetGroupObject() { return groupObject; }
     // Dictionary to store the original parent of each child
     private Dictionary<Transform, Transform> originalParents = new Dictionary<Transform, Transform>();
 
@@ -21,20 +21,7 @@ public class ChildGroupingScript : MonoBehaviour
         //GroupMatchingChildren();
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            GroupMatchingChildren();
-        }
-
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            UngroupMatchingChildren();
-        }
-    }
-
-    private void GroupMatchingChildren()
+    public void GroupMatchingChildren()
     {
         int childCount = parentObject.transform.childCount;
 
@@ -55,7 +42,7 @@ public class ChildGroupingScript : MonoBehaviour
         }
     }
 
-    private void UngroupMatchingChildren()
+    public void UngroupMatchingChildren()
     {
         // Iterate through the grouped children in the groupObject
         int childCount = groupObject.childCount;
@@ -74,6 +61,7 @@ public class ChildGroupingScript : MonoBehaviour
                 originalParents.Remove(child);
             }
         }
+       // groupObject.rotation = Quaternion.Euler(0, 0, 0) ;
     }
 
 }

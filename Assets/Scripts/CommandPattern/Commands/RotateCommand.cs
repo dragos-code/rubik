@@ -14,7 +14,7 @@ public class RotateCommand : ICommand
 
     public void Execute()
     {
-        _previousRotation = _target.rotation;
+        _previousRotation = _target.rotation; // Quaternion.Euler(axis * 90f) * transform.rotation;
         _target.rotation = _newRotation;
     }
 
