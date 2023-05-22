@@ -20,6 +20,11 @@ public class ChildGroupingScript : MonoBehaviour
         // Group the matching children
         //GroupMatchingChildren();
     }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W)) { GroupMatchingChildren(); }
+        if (Input.GetKeyDown(KeyCode.S)) { UngroupMatchingChildren(); }
+    }
 
     public void GroupMatchingChildren()
     {
@@ -61,7 +66,7 @@ public class ChildGroupingScript : MonoBehaviour
                 originalParents.Remove(child);
             }
         }
-       // groupObject.rotation = Quaternion.Euler(0, 0, 0) ;
+        groupObject.rotation = Quaternion.Euler(0, 0, 0) ;
     }
 
 }

@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+/*using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -32,8 +32,7 @@ public class GameManager : MonoBehaviour
                 childGroupingScript.GroupMatchingChildren();
 
                 // Create a RotateCommand instance and rotate the grouped objects
-                RotateCommand rotateCommand = new RotateCommand(childGroupingScript.GetGroupObject(),
-                    Quaternion.Euler(0, 90, 0));
+                RotateCommand rotateCommand = new RotateCommand(childGroupingScript.GetGroupObject(), Quaternion.Euler(Vector3.up * 90f) * transform.rotation);
                 rotateCommand.Execute();
 
                 // Ungroup the previously grouped objects
@@ -50,3 +49,4 @@ public class GameManager : MonoBehaviour
     }
 
 }
+*/

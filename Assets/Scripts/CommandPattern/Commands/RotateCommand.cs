@@ -15,7 +15,9 @@ public class RotateCommand : ICommand
     public void Execute()
     {
         _previousRotation = _target.rotation; // Quaternion.Euler(axis * 90f) * transform.rotation;
-        _target.rotation = _newRotation;
+        _target.rotation = Quaternion.RotateTowards(_target.rotation, _newRotation, 180f * Time.fixedDeltaTime);
+
+        //_target.rotation = _newRotation;
     }
 
     public void Undo()

@@ -5,24 +5,13 @@ public class RaycastManager : MonoBehaviour
     public Transform[] startPos;
     public Vector3[] directions;
 
-    string faceName;
+    Vector3 faceIndex;
     private void Update()
     {
-     /*   if (Input.GetKeyDown(KeyCode.P))
-        {
-            if (!isRaycastTriggered)
-            {
-                CastRaycasts("Up");
-                isRaycastTriggered = true;
-            }
-        }
-        else if (Input.GetKeyUp(KeyCode.P))
-        {
-            isRaycastTriggered = false;
-        }*/
+        CastRaycasts("Up");
     }
 
-    public string CastRaycasts(string directionName)
+    public Vector3 CastRaycasts(string directionName)
     {
       
         for (int i = 0; i < startPos.Length; i++)
@@ -32,14 +21,14 @@ public class RaycastManager : MonoBehaviour
                 RaycastHit hit;
                 if (Physics.Raycast(startPos[i].position, directions[i], out hit))
                 {
-                    faceName = hit.collider.gameObject.name;
-                    
-                    Debug.Log("Hit parent name: " + faceName);
+                    //faceName = hit.collider.gameObject.name;
+                    faceIndex = hit.collider.gameObject.transform.position;
+                    //Debug.Log("Hit parent name: " + faceIndex );
                 } 
                
             }
         }
-        return faceName;
+        return faceIndex;
     }
 
     private void OnDrawGizmos()

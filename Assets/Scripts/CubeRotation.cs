@@ -4,12 +4,13 @@ public class CubeRotation : MonoBehaviour
 {
     private Quaternion targetRotation;
     private bool isRotating = false;
+    private bool isFaceRotating = false;
 
-    private CommandManager commandManager;
+    private ChildGroupingScript childGroupingScript;
 
     private void Start()
     {
-        commandManager = FindObjectOfType<CommandManager>();
+        childGroupingScript = FindObjectOfType<ChildGroupingScript>();
     }
 
     private void Update()
@@ -33,17 +34,12 @@ public class CubeRotation : MonoBehaviour
                 RotateCube(Vector3.down);
             }
 
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Quaternion newRotation = transform.rotation * Quaternion.Euler(0f, 45f, 0f);
-                ICommand rotateCommand = new RotateCommand(transform, newRotation);
-                commandManager.ExecuteCommand(rotateCommand);
-            }
-
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-                commandManager.UndoLastCommand();
-            }
+       /*     if(Input.GetKeyDown(KeyCode.Q)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }
+            if(Input.GetKeyDown(KeyCode.W)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }
+            if(Input.GetKeyDown(KeyCode.E)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }
+            if(Input.GetKeyDown(KeyCode.R)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }
+            if(Input.GetKeyDown(KeyCode.T)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }
+            if(Input.GetKeyDown(KeyCode.Y)) { RotateFace(Vector3.up, childGroupingScript.GetGroupObject()); }*/
         }
     }
 
@@ -53,15 +49,36 @@ public class CubeRotation : MonoBehaviour
         isRotating = true;
     }
 
+    private void RotateFace(Vector3 axis, Transform target)
+    {
+        childGroupingScript.GroupMatchingChildren();
+        targetRotation = Quaternion.Euler(axis * 90f) * target.rotation;  // gargantuan kraken eldrich solution
+        isFaceRotating = true;
+    }
+
     private void FixedUpdate()
     {
         if (isRotating)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 180f * Time.fixedDeltaTime);
-
-            if (transform.rotation == targetRotation)
+            if(Quaternion.Angle(transform.rotation, targetRotation) <=1)
             {
+                transform.rotation = targetRotation;
                 isRotating = false;
+
+            }
+            /*if (transform.rotation == targetRotation)
+            {
+            }*/
+        }
+
+        if(isFaceRotating) 
+        {
+            childGroupingScript.GetGroupObject().rotation = Quaternion.RotateTowards(childGroupingScript.GetGroupObject().rotation, targetRotation, 180f* Time.fixedDeltaTime);
+            if (childGroupingScript.GetGroupObject().rotation == targetRotation)
+            {
+                isFaceRotating = false;
+                childGroupingScript.UngroupMatchingChildren();
             }
         }
     }
