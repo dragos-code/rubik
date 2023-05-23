@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FaceBehaviour : MonoBehaviour
+public class FaceColor : MonoBehaviour
 {
     Renderer _renderer_material;
     public ColorContainer _container;

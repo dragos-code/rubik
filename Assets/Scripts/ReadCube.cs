@@ -28,13 +28,6 @@ public class ReadCube : MonoBehaviour
     {
         cubeState = FindObjectOfType<CubeState>();
         SetRayTransforms();
-        //ReadState();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     public void ReadState()
@@ -56,6 +49,7 @@ public class ReadCube : MonoBehaviour
         leftRays = BuildRays(RayLeft, new Vector3(0, 90, 0));
         rightRays = BuildRays(RayRight, new Vector3(0, 270, 0));
     }
+
     List<GameObject> BuildRays(Transform rayTransform, Vector3 direction)
     {
         int rayCount = 0;
