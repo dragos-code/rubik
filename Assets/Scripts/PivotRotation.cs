@@ -14,7 +14,7 @@ public class PivotRotation : MonoBehaviour
 
     private bool isRotating;
 
-    public bool GetRotationStatus() { return isRotating; }
+    public bool IsRotating { get { return isRotating; } }
     void Start()
     {
         readCube = FindObjectOfType<ReadCube>();

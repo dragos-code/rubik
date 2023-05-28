@@ -16,7 +16,7 @@ public class SelectFace : MonoBehaviour
 
     void Update()
     {
-        if (!pivotRotation.GetRotationStatus())
+        if (!pivotRotation.IsRotating)
         {
             readCube.ReadState();
 
