@@ -1,0 +1,424 @@
+ 
+using System;
+using UnityEngine;
+
+public class CubeRotation : MonoBehaviour
+{
+    private Quaternion targetRotation;
+    private Quaternion currentRotation;
+    private bool isRotating = false;
+    private Vector3 initialMousePosition;
+    public float snapThreshold =10;
+
+    private void Update()
+    {
+        if (!isRotating)
+        {
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                RotateCube(Vector3.right);
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                RotateCube(Vector3.left);
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                RotateCube(Vector3.up);
+            }
+            else if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                RotateCube(Vector3.down);
+            }
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            initialMousePosition = Input.mousePosition;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            currentRotation = transform.rotation;
+            isRotating = false;
+
+            if (!IsRotationAligned(currentRotation))
+            {
+                Quaternion snappedRotation = SnapToAlignedRotation(currentRotation);
+                transform.rotation = snappedRotation;
+                currentRotation = snappedRotation;
+            }
+        }
+        else if (Input.GetMouseButton(0))
+        {
+            RotateCubeWithDrag();
+        }
+    }
+
+    private Quaternion SnapToAlignedRotation(Quaternion rotation)
+    {
+        Vector3 forward = transform.forward;
+        Vector3 cameraForward = Camera.main.transform.forward;
+
+        Quaternion targetRotation = Quaternion.FromToRotation(GetMostVisibleFaceNormal(), cameraForward) * rotation;
+
+        Vector3 eulerAngles = targetRotation.eulerAngles;
+        float x = SnapAngle(eulerAngles.x);
+        float y = SnapAngle(eulerAngles.y);
+        float z = SnapAngle(eulerAngles.z);
+        targetRotation = Quaternion.Euler(x, y, z);
+
+        return targetRotation;
+    }
+
+    private float SnapAngle(float angle)
+    {
+        float snappedAngle = Mathf.Round(angle / 90f) * 90f;
+        return snappedAngle;
+    }
+
+    private Vector3 GetMostVisibleFaceNormal()
+    {
+        Vector3 cameraPosition = Camera.main.transform.position;
+        Vector3[] faceNormals = {
+            Vector3.up,
+            Vector3.down,
+            Vector3.left,
+            Vector3.right,
+            Vector3.forward,
+            Vector3.back
+        };
+
+        Vector3 mostVisibleNormal = Vector3.zero;
+        float maxDot = -Mathf.Infinity;
+
+        foreach (Vector3 normal in faceNormals)
+        {
+            float dot = Vector3.Dot(normal, cameraPosition - transform.position);
+            float absDot = Mathf.Abs(dot);
+            if (absDot > maxDot)
+            {
+                maxDot = absDot;
+                mostVisibleNormal = normal;
+            }
+        }
+
+        return mostVisibleNormal;
+    }
+
+    private bool IsRotationAligned(Quaternion currentRotation)
+    {
+        Vector3 forward = transform.forward;
+        Vector3 cameraForward = Camera.main.transform.forward;
+        float angle = Vector3.Angle(forward, cameraForward);
+        return Mathf.Abs(angle) < snapThreshold;
+    }
+
+    private void RotateCube(Vector3 axis)
+    {
+        targetRotation = Quaternion.Euler(axis * 90f) * transform.rotation;  // gargantuan kraken eldrich solution
+        isRotating = true;
+    }
+
+    private void FixedUpdate()
+    {
+        if (isRotating)
+        {
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 180f * Time.fixedDeltaTime);
+            if (Quaternion.Angle(transform.rotation, targetRotation) <= 1)
+            {
+                transform.rotation = targetRotation;
+                isRotating = false;
+
+            }
+        }
+
+    }
+
+    private void RotateCubeWithDrag()
+    {
+        Vector3 dragDelta = Input.mousePosition - initialMousePosition;
+        float dragAngleX = dragDelta.y * 0.5f;
+        float dragAngleY = -dragDelta.x * 0.5f;
+        float clampedAngleX = Mathf.Clamp(dragAngleX, -45f, 45f);
+        float clampedAngleY = Mathf.Clamp(dragAngleY, -45f, 45f);
+
+        Quaternion rotationDelta = Quaternion.Euler(clampedAngleX, clampedAngleY, 0f);
+
+        targetRotation = rotationDelta * transform.rotation;
+        initialMousePosition = Input.mousePosition;
+        isRotating = true;
+    }
+}
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using static UnityEditor.Rendering.InspectorCurveEditor;
+
+public class PivotRotation : MonoBehaviour
+{
+    private List<GameObject> activeSide;
+    private Vector3 localForward;
+    private Quaternion targetQuaternion;
+    private float speed = 300f;
+    private ReadCube readCube;
+    private CubeState cubeState;
+
+    private bool isRotating;
+
+    public bool IsRotating { get { return isRotating; } }
+    void Start()
+    {
+        readCube = FindObjectOfType<ReadCube>();
+        cubeState = FindObjectOfType<CubeState>();
+    }
+
+    private void LateUpdate()
+    {
+        if (isRotating)
+        {
+            AutoRotate();
+        }
+    }
+
+    public void Rotate(List<GameObject> sides)
+    {
+        activeSide = sides;
+        localForward = Vector3.zero - sides[4].transform.parent.transform.localPosition;
+    }
+
+    public void StartAutoRotate(List<GameObject> side, float angle)
+    {
+        cubeState.GroupFacePieces(side);
+        Vector3 localForward = Vector3.zero - side[4].transform.parent.transform.localPosition;
+        targetQuaternion = Quaternion.AngleAxis(angle, localForward) * transform.localRotation;
+        activeSide = side;
+        isRotating = true;
+    }
+
+    private void AutoRotate()
+    {
+        var step = speed * Time.deltaTime;
+        transform.localRotation = Quaternion.RotateTowards(transform.localRotation, targetQuaternion, step);
+
+        if (Quaternion.Angle(transform.localRotation, targetQuaternion) <= 1)
+        {
+            transform.localRotation = targetQuaternion;
+            cubeState.UngroupFacePieces(activeSide, transform.parent);
+            readCube.ReadState();
+            isRotating = false;
+        }
+    }
+}
+
+
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CubeState : MonoBehaviour
+{
+    public List<GameObject> front = new List<GameObject>();
+    public List<GameObject> back = new List<GameObject>();
+    public List<GameObject> up = new List<GameObject>();
+    public List<GameObject> down = new List<GameObject>();
+    public List<GameObject> left = new List<GameObject>();
+    public List<GameObject> right = new List<GameObject>();
+
+    public void GroupFacePieces(List<GameObject> cubeSide)
+    {
+        foreach (GameObject face in cubeSide)
+        {
+            if (face != cubeSide[4])
+            {
+                face.transform.parent.transform.parent = cubeSide[4].transform.parent;
+            }
+        }
+        cubeSide[4].transform.parent.GetComponent<PivotRotation>().Rotate(cubeSide);
+    }
+
+    public void UngroupFacePieces(List<GameObject> cubelets, Transform pivot)
+    {
+        foreach(GameObject face in cubelets)
+        {
+            if (face!= cubelets[4])
+            {
+                face.transform.parent.transform.parent = cubelets[4].transform.parent.transform.parent;
+            }
+        }
+    }
+
+}
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class FaceColor : MonoBehaviour
+{
+    Renderer _renderer_material;
+    public ColorContainer _container;
+    [SerializeField]
+    [Range(0, 5)] int indexNumber;
+
+    private void Start()
+    {
+        _renderer_material = GetComponent<Renderer>();
+        _renderer_material.material.color = _container._color[indexNumber];
+    }
+}
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ReadCube : MonoBehaviour
+{
+
+    public Transform RayUp;
+    public Transform RayDown;
+    public Transform RayFront;
+    public Transform RayBack;
+    public Transform RayLeft;
+    public Transform RayRight;
+
+    private List<GameObject> upRays = new List<GameObject>();
+    private List<GameObject> downRays = new List<GameObject>();
+    private List<GameObject> frontRays = new List<GameObject>();
+    private List<GameObject> backRays = new List<GameObject>();
+    private List<GameObject> leftRays = new List<GameObject>();
+    private List<GameObject> rightRays = new List<GameObject>();
+
+    private int layerMask = 1 << 6;
+
+    CubeState cubeState;
+
+    public GameObject emptyGameObject;
+    void Start()
+    {
+        cubeState = FindObjectOfType<CubeState>();
+        SetRayTransforms();
+    }
+
+    public void ReadState()
+    {
+        cubeState.up = ReadFace(upRays, RayUp);
+        cubeState.down = ReadFace(downRays, RayDown);
+        cubeState.right = ReadFace(rightRays, RayRight);
+        cubeState.left = ReadFace(leftRays, RayLeft);
+        cubeState.front = ReadFace(frontRays, RayFront);
+        cubeState.back = ReadFace(backRays, RayBack);
+    }
+
+    void SetRayTransforms()
+    {
+        upRays = BuildRays(RayUp, new Vector3(90, 0, 0));
+        downRays = BuildRays(RayDown, new Vector3(270, 90, 0));
+        frontRays = BuildRays(RayFront, new Vector3(0, 0, 0));
+        backRays = BuildRays(RayBack, new Vector3(0, 180, 0));
+        leftRays = BuildRays(RayLeft, new Vector3(0, 90, 0));
+        rightRays = BuildRays(RayRight, new Vector3(0, 270, 0));
+    }
+
+    List<GameObject> BuildRays(Transform rayTransform, Vector3 direction)
+    {
+        int rayCount = 0;
+        List<GameObject> rays = new List<GameObject>();
+
+        for (int y = 1; y > -2; y--)
+        {
+            for (int x = -1; x < 2; x++)
+            {
+                Vector3 startPos = new Vector3(rayTransform.localPosition.x + x, rayTransform.localPosition.y + y, rayTransform.localPosition.z);
+
+                GameObject rayStart = Instantiate(emptyGameObject, startPos, Quaternion.identity, rayTransform);
+                rayStart.name = rayCount.ToString();
+                rays.Add(rayStart);
+                rayCount++;
+
+            }
+        }
+        rayTransform.localRotation = Quaternion.Euler(direction);
+        return rays;
+
+    }
+
+    public List<GameObject> ReadFace(List<GameObject> rayStarts, Transform rayTransform)
+    {
+        List<GameObject> facesHit = new List<GameObject>();
+        foreach (GameObject rayStart in rayStarts)
+        {
+            Vector3 ray = rayStart.transform.position;
+            RaycastHit hit;
+            if (Physics.Raycast(ray, rayTransform.forward, out hit, Mathf.Infinity, layerMask))
+            {
+                Debug.DrawRay(ray, rayTransform.forward * hit.distance, Color.yellow);
+                facesHit.Add(hit.collider.gameObject);
+            }
+            else
+            {
+                Debug.DrawRay(ray, rayTransform.forward * 1000, Color.red);
+
+            }
+        }
+        return facesHit;
+    }
+}
+
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SelectFace : MonoBehaviour
+{
+    CubeState cubeState;
+    ReadCube readCube;
+    PivotRotation pivotRotation;
+
+    void Start()
+    {
+        readCube = FindObjectOfType<ReadCube>();
+        cubeState = FindObjectOfType<CubeState>();
+        pivotRotation = FindObjectOfType<PivotRotation>();
+    }
+
+    void Update()
+    {
+        if (!pivotRotation.IsRotating)
+        {
+            readCube.ReadState();
+
+            if (Input.GetKeyDown(KeyCode.Q))
+                RotateFace(cubeState.front, -90);
+            else if (Input.GetKeyDown(KeyCode.W))
+                RotateFace(cubeState.back, -90);
+            else if (Input.GetKeyDown(KeyCode.E))
+                RotateFace(cubeState.up, -90);
+            else if (Input.GetKeyDown(KeyCode.R))
+                RotateFace(cubeState.down, -90);
+            else if (Input.GetKeyDown(KeyCode.T))
+                RotateFace(cubeState.left, -90);
+            else if (Input.GetKeyDown(KeyCode.Y))
+                RotateFace(cubeState.right, -90);
+            else if (Input.GetKeyDown(KeyCode.A))
+                RotateFace(cubeState.front, 90);
+            else if (Input.GetKeyDown(KeyCode.S))
+                RotateFace(cubeState.back, 90);
+            else if (Input.GetKeyDown(KeyCode.D))
+                RotateFace(cubeState.up, 90);
+            else if (Input.GetKeyDown(KeyCode.F))
+                RotateFace(cubeState.down, 90);
+            else if (Input.GetKeyDown(KeyCode.G))
+                RotateFace(cubeState.left, 90);
+            else if (Input.GetKeyDown(KeyCode.H))
+                RotateFace(cubeState.right, 90);
+        }
+    }
+
+    void RotateFace(List<GameObject> face, int angle)
+    {
+        pivotRotation = face[4].transform.parent.GetComponent<PivotRotation>();
+        pivotRotation.StartAutoRotate(face, angle);
+    }
+}
+
